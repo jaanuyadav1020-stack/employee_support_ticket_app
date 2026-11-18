@@ -1,22 +1,15 @@
 const express = require('express');
+const { createUsersController } = require('../controllers/usersController');
 
 function createUsersRouter(db) {
   const router = express.Router();
+  const controller = createUsersController(db);
 
-  // GET /api/users - List all users (for switcher and attribution)
-  router.get('/', (req, res, next) => {
-    try {
-      const users = db.prepare('SELECT id, name, email, role, created_at FROM users ORDER BY name ASC').all();
-      res.json({ users });
-    } catch (err) {
-      next(err);
-    }
-  });
+  // 1. GET /api/users - List all users
+  router.get('/', controller.getUsers);
 
-  // GET /api/users/me - Get current user profile
-  router.get('/me', (req, res) => {
-    res.json({ user: req.user });
-  });
+  // 2. GET /api/users/me - Get current user profile
+  router.get('/me', controller.getCurrentUser);
 
   return router;
 }

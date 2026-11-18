@@ -50,6 +50,16 @@ describe('Tickets API', () => {
       expect(res.status).toBe(200);
       res.body.tickets.forEach(t => expect(t.status).toBe('Open'));
     });
+
+    it('allows support staff to query tickets belonging to a specific employee', async () => {
+      const res = await request(app)
+        .get('/api/tickets?employeeId=emp-1')
+        .set('x-user-id', 'staff-1');
+
+      expect(res.status).toBe(200);
+      expect(res.body.tickets.length).toBe(2);
+      res.body.tickets.forEach(t => expect(t.created_by).toBe('emp-1'));
+    });
   });
 
   describe('POST /api/tickets', () => {
