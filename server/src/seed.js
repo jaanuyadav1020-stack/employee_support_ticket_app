@@ -1,4 +1,7 @@
+const bcrypt = require('bcryptjs');
 const { getDb } = require('./db');
+
+const DEFAULT_PASSWORD = 'Password123!';
 
 function seedDatabase(dbInstance) {
   const db = dbInstance || getDb();
@@ -8,10 +11,13 @@ function seedDatabase(dbInstance) {
   db.exec('DELETE FROM tickets;');
   db.exec('DELETE FROM users;');
 
+  // Hash the default password (synchronous for seeding)
+  const passwordHash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
+
   // Insert Users
   const insertUser = db.prepare(`
-    INSERT INTO users (id, name, email, role)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO users (id, name, email, password_hash, role)
+    VALUES (?, ?, ?, ?, ?)
   `);
 
   const users = [
@@ -21,7 +27,7 @@ function seedDatabase(dbInstance) {
   ];
 
   for (const user of users) {
-    insertUser.run(user.id, user.name, user.email, user.role);
+    insertUser.run(user.id, user.name, user.email, passwordHash, user.role);
   }
 
   // Insert Tickets
@@ -87,6 +93,7 @@ function seedDatabase(dbInstance) {
 
   if (!dbInstance) {
     console.log('Database seeded successfully with users, sample tickets, and comments.');
+    console.log('Default password for all accounts: Password123!');
   }
 }
 
