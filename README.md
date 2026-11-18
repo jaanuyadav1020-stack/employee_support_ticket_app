@@ -284,3 +284,5 @@ npm test
 3. **Real-Time Updates**: Integrate WebSockets (e.g. Socket.io) to instantly notify employees when ticket status changes or when staff comments.
 4. **Audit Log & SLA Tracking**: Track chronological status change history with timestamps and assign resolution deadline timers based on priority levels.
 5. **Email / Slack Notifications**: Automated webhook dispatch when tickets are submitted, assigned, or resolved.
+#   e m p l o y e e - s u p p o r t - t i c k e t - a p p  
+ 
