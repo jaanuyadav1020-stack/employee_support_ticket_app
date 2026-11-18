@@ -1,0 +1,15 @@
+{
+  "name": "employee-support-ticket-app",
+  "version": "1.0.0",
+  "description": "Full-stack Employee Support Ticket Management Application",
+  "scripts": {
+    "seed": "npm --prefix server run seed",
+    "test": "npm --prefix server test",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build"
+  },
+  "keywords": ["support-ticket", "react", "express", "sqlite"],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "support-ticket-server",
+  "version": "1.0.0",
+  "description": "Backend API for Employee Support Ticket Management Application",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "seed": "node src/seed.js",
+    "test": "jest --runInBand --detectOpenHandles"
+  },
+  "keywords": ["support-ticket", "express", "sqlite", "rest-api"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 10000
+  }
+}
