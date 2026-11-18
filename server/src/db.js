@@ -29,8 +29,8 @@ function initializeDb(customDbPath) {
 
     CREATE TABLE IF NOT EXISTS tickets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
+      title TEXT NOT NULL CHECK(length(trim(title)) >= 5 AND length(trim(title)) <= 100),
+      description TEXT NOT NULL CHECK(length(trim(description)) >= 10 AND length(trim(description)) <= 1000),
       category TEXT NOT NULL CHECK(category IN ('Hardware', 'Software', 'Network', 'Facilities', 'Access & Accounts', 'Other')),
       priority TEXT NOT NULL CHECK(priority IN ('Low', 'Medium', 'High', 'Urgent')),
       status TEXT NOT NULL DEFAULT 'Open' CHECK(status IN ('Open', 'In Progress', 'Resolved', 'Closed')),

@@ -100,6 +100,57 @@ describe('Tickets API', () => {
       expect(res.body.error).toBe('Validation failed');
       expect(res.body.details.length).toBeGreaterThanOrEqual(4);
     });
+
+    describe('Regression: Empty and Whitespace-Only Title Validation', () => {
+      it('rejects an empty title with an appropriate error message', async () => {
+        const res = await request(app)
+          .post('/api/tickets')
+          .set('x-user-id', 'emp-1')
+          .send({
+            title: '',
+            description: 'Valid description that meets all length requirements',
+            category: 'Hardware',
+            priority: 'Low'
+          });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe('Validation failed');
+        expect(res.body.details).toContain('Title is required and cannot be empty or whitespace only');
+      });
+
+      it('rejects a whitespace-only title with an appropriate error message', async () => {
+        const res = await request(app)
+          .post('/api/tickets')
+          .set('x-user-id', 'emp-1')
+          .send({
+            title: '      ',
+            description: 'Valid description that meets all length requirements',
+            category: 'Hardware',
+            priority: 'Low'
+          });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe('Validation failed');
+        expect(res.body.details).toContain('Title is required and cannot be empty or whitespace only');
+      });
+
+      it('accepts a valid title and creates the ticket', async () => {
+        const res = await request(app)
+          .post('/api/tickets')
+          .set('x-user-id', 'emp-1')
+          .send({
+            title: 'Valid workplace ticket title',
+            description: 'Valid description that meets all length requirements',
+            category: 'Hardware',
+            priority: 'Low'
+          });
+
+        expect(res.status).toBe(201);
+        expect(res.body.ticket).toBeDefined();
+        expect(res.body.ticket.title).toBe('Valid workplace ticket title');
+        expect(res.body.ticket.status).toBe('Open');
+      });
+    });
   });
 
   describe('GET /api/tickets/:id', () => {

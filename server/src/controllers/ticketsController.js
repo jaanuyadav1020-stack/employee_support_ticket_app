@@ -106,8 +106,10 @@ function createTicketsController(db) {
         const { title, description, category, priority } = req.body;
         const errors = [];
 
-        // Validation
-        if (!title || typeof title !== 'string' || title.trim().length < 5 || title.trim().length > 100) {
+        // Title Validation: Reject empty, whitespace-only, or out-of-boundary titles
+        if (!title || typeof title !== 'string' || title.trim().length === 0) {
+          errors.push('Title is required and cannot be empty or whitespace only');
+        } else if (title.trim().length < 5 || title.trim().length > 100) {
           errors.push('Title must be between 5 and 100 characters long');
         }
 

@@ -21,7 +21,10 @@ export function CreateTicketPage({ onBack, onTicketCreated }) {
     setErrors([]);
 
     const clientErrors = [];
-    if (!title.trim() || title.trim().length < 5 || title.trim().length > 100) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      clientErrors.push('Problem title is required and cannot be empty or whitespace only.');
+    } else if (trimmedTitle.length < 5 || trimmedTitle.length > 100) {
       clientErrors.push('Problem title must be between 5 and 100 characters long.');
     }
     if (!description.trim() || description.trim().length < 10 || description.trim().length > 1000) {
