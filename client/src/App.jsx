@@ -2,26 +2,48 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from './context/UserContext';
 import { api } from './services/api';
 import { Navbar } from './components/Navbar';
-import { TicketList } from './components/TicketList';
-import { TicketDetail } from './components/TicketDetail';
-import { TicketForm } from './components/TicketForm';
-import { ShieldCheck, UserCheck, RefreshCw } from 'lucide-react';
+import { EmployeeDashboard } from './pages/EmployeeDashboard';
+import { CreateTicketPage } from './pages/CreateTicketPage';
+import { TicketDetailsPage } from './pages/TicketDetailsPage';
+import { SupportStaffDashboard } from './pages/SupportStaffDashboard';
+import { ShieldCheck, UserCheck, RefreshCw, AlertCircle } from 'lucide-react';
 
 export function App() {
-  const { currentUser, isSupport, loading: userLoading } = useUser();
+  const { currentUser, isSupport, isEmployee, loading: userLoading, error: userError } = useUser();
+  const [currentPage, setCurrentPage] = useState('employee-dashboard');
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
-  const [selectedTicketId, setSelectedTicketId] = useState(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [ticketError, setTicketError] = useState(null);
 
+  // Sync default page with active role on user persona switch
+  useEffect(() => {
+    if (currentUser) {
+      if (isSupport) {
+        // If current page is an employee-specific page, shift to staff dashboard
+        if (currentPage === 'employee-dashboard' || currentPage === 'create-ticket') {
+          setCurrentPage('staff-dashboard');
+        }
+      } else {
+        // If current page is staff dashboard, shift to employee dashboard
+        if (currentPage === 'staff-dashboard') {
+          setCurrentPage('employee-dashboard');
+        }
+      }
+    }
+  }, [currentUser, isSupport]);
+
+  // Fetch tickets for active user from backend API
   const fetchTickets = useCallback(async () => {
     if (!currentUser) return;
     try {
       setLoadingTickets(true);
+      setTicketError(null);
       const res = await api.getTickets({}, currentUser.id);
       setTickets(res.tickets || []);
     } catch (err) {
       console.error('Failed to fetch tickets:', err);
+      setTicketError(err.message || 'Failed to connect to backend server. Make sure port 5000 is running.');
     } finally {
       setLoadingTickets(false);
     }
@@ -29,17 +51,12 @@ export function App() {
 
   useEffect(() => {
     fetchTickets();
-    // Whenever user switches persona, if we were in a ticket detail view that doesn't belong to them,
-    // clear selected ticket if employee
-    if (selectedTicketId && currentUser && !isSupport) {
-      // Re-verify after fetch
-    }
-  }, [fetchTickets, currentUser]);
+  }, [fetchTickets]);
 
   const handleTicketCreated = (newTicket) => {
     setTickets(prev => [newTicket, ...prev]);
-    // Navigate straight to newly created ticket
     setSelectedTicketId(newTicket.id);
+    setCurrentPage('ticket-details');
   };
 
   const handleStatusChanged = (updatedTicket) => {
@@ -48,12 +65,43 @@ export function App() {
     );
   };
 
+  const handleSelectTicket = (id) => {
+    setSelectedTicketId(id);
+    setCurrentPage('ticket-details');
+  };
+
+  const handleBackToDashboard = () => {
+    setSelectedTicketId(null);
+    setCurrentPage(isSupport ? 'staff-dashboard' : 'employee-dashboard');
+    fetchTickets();
+  };
+
   if (userLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-          <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
-          <span>Initializing workspace...</span>
+        <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-500">
+          <RefreshCw className="w-5 h-5 animate-spin text-indigo-600" />
+          <span>Connecting to Support Hub API...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (userError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="max-w-md w-full bg-white p-6 rounded-2xl border border-rose-200 shadow-sm text-center space-y-3">
+          <div className="w-12 h-12 mx-auto rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h2 className="text-base font-bold text-slate-900">Backend Connection Error</h2>
+          <p className="text-xs text-slate-600">{userError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold hover:bg-indigo-700 transition"
+          >
+            Retry Connection
+          </button>
         </div>
       </div>
     );
@@ -61,15 +109,17 @@ export function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
-      {/* Navigation */}
+      {/* Top Navbar */}
       <Navbar
-        activeView={selectedTicketId ? 'detail' : 'list'}
-        setActiveView={() => setSelectedTicketId(null)}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        currentPage={currentPage}
+        onNavigate={(page) => {
+          setSelectedTicketId(null);
+          setCurrentPage(page);
+        }}
       />
 
-      {/* Role Banner Indicator */}
-      <div className={`py-1.5 px-4 text-xs font-medium text-center border-b ${
+      {/* Role State Banner */}
+      <div className={`py-2 px-4 text-xs font-medium text-center border-b ${
         isSupport
           ? 'bg-purple-100 text-purple-900 border-purple-200'
           : 'bg-indigo-50 text-indigo-900 border-indigo-100'
@@ -77,49 +127,64 @@ export function App() {
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
           {isSupport ? (
             <>
-              <ShieldCheck className="w-4 h-4 text-purple-600" />
-              <span><strong>Support Staff Mode:</strong> You can view all employee tickets, change ticket statuses, and respond with staff guidance.</span>
+              <ShieldCheck className="w-4 h-4 text-purple-700 shrink-0" />
+              <span><strong>Support Staff Mode:</strong> Viewing all company workplace tickets. You can update ticket statuses and post staff guidance.</span>
             </>
           ) : (
             <>
-              <UserCheck className="w-4 h-4 text-indigo-600" />
-              <span><strong>Employee Mode:</strong> You can submit tickets, view your own submitted issues, and follow up in discussion comments.</span>
+              <UserCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span><strong>Employee Mode:</strong> Viewing only tickets submitted by you. You can report workplace problems and converse via comments.</span>
             </>
           )}
         </div>
       </div>
 
-      {/* Main Container */}
+      {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {selectedTicketId ? (
-          <TicketDetail
-            ticketId={selectedTicketId}
-            onBack={() => {
-              setSelectedTicketId(null);
-              fetchTickets();
-            }}
-            onStatusChanged={handleStatusChanged}
-          />
-        ) : (
-          <TicketList
+        {ticketError && (
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <span>{ticketError}</span>
+          </div>
+        )}
+
+        {/* Page Routing */}
+        {currentPage === 'employee-dashboard' && (
+          <EmployeeDashboard
             tickets={tickets}
             loading={loadingTickets}
-            onSelectTicket={(id) => setSelectedTicketId(id)}
-            onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onSelectTicket={handleSelectTicket}
+            onNavigateCreate={() => setCurrentPage('create-ticket')}
+          />
+        )}
+
+        {currentPage === 'create-ticket' && (
+          <CreateTicketPage
+            onBack={() => setCurrentPage('employee-dashboard')}
+            onTicketCreated={handleTicketCreated}
+          />
+        )}
+
+        {currentPage === 'ticket-details' && selectedTicketId && (
+          <TicketDetailsPage
+            ticketId={selectedTicketId}
+            onBack={handleBackToDashboard}
+            onStatusChanged={handleStatusChanged}
+          />
+        )}
+
+        {currentPage === 'staff-dashboard' && (
+          <SupportStaffDashboard
+            tickets={tickets}
+            loading={loadingTickets}
+            onSelectTicket={handleSelectTicket}
           />
         )}
       </main>
 
-      {/* Modal Ticket Submission */}
-      <TicketForm
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onTicketCreated={handleTicketCreated}
-      />
-
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-        <p>Employee Support Ticket Management Application &bull; Built with React, Express, and SQLite</p>
+        <p>Employee Support Ticket Management Application &bull; React &bull; Node.js/Express &bull; SQLite</p>
       </footer>
     </div>
   );
