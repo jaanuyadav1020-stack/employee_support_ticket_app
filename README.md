@@ -1,133 +1,286 @@
 # Employee Support Ticket Management Application
 
-A full-stack, lightweight workplace issue reporting and ticket tracking application built with **React**, **Node.js/Express**, and **SQLite**.
+---
+
+## 1. Project Title
+**Employee Support Ticket Management Application** (SupportHub)
 
 ---
 
-## Features
+## 2. Project Overview
+The Employee Support Ticket Management Application is a lightweight, responsive, full-stack workplace issue reporting and resolution system. It provides a formal, auditable channel for employees to report workplace problems (such as IT, facility, hardware, and account access issues) and enables dedicated support staff to triage, prioritize, update, and resolve those issues with clear accountability and status transparency.
+
+---
+
+## 3. Problem Statement
+In workplace environments without a dedicated issue management tool:
+* Workplace problems are communicated through fragmented, informal channels (email, instant messages, hallway conversations), leading to lost requests and lack of accountability.
+* Employees lack visibility into the resolution status and cannot easily provide follow-up diagnostic information.
+* Support personnel lack a centralized triage queue to organize, categorize, prioritize, and record troubleshooting notes.
+
+SupportHub resolves this by providing a unified portal with explicit role separation between reporting Employees and resolving Support Staff.
+
+---
+
+## 4. Features
 
 ### For Employees
-* **Employee Dashboard**: Comprehensive overview displaying active tickets, summary KPI cards (Total Submitted, Open & Pending, In Progress, Resolved), and status filters.
-* **Create Ticket Page**: Dedicated submission interface with real-time character counting and boundary validation (Title: 5–100 chars, Description: 10–1,000 chars, Category, Priority).
-* **Ticket Details Page**: Full problem description, current lifecycle status badge, priority tag, category, and creation metadata.
-* **Threaded Comment System**: Follow up on open issues, answer support questions, and view updates in chronological order with author role attribution and relative timestamps.
+* **Employee Dashboard**: Visual KPI summary cards (Total Submitted, Open & Pending, In Progress, Resolved Issues) and ticket listing filtered strictly to the employee's own submissions.
+* **Create Ticket Page**: Dedicated submission form with input validation, real-time character counters (Title: 5–100 chars, Description: 10–1,000 chars), category classification, and priority selection.
+* **Ticket Details Page**: Full problem description, current status badge, priority tag, category, and creation metadata.
+* **Threaded Comment Discussion**: Chronological discussion thread to respond to technician inquiries, attach diagnostic details, and monitor updates.
 
 ### For Support Staff
-* **Support Staff Dashboard**: Centralized queue displaying all workplace tickets across the organization.
-* **Triage & Filtering**: Filter queue by Status (`Open`, `In Progress`, `Resolved`, `Closed`), Category, and Priority, or search by keyword and submitter name.
-* **Status Updates**: Update ticket statuses (`Open` $\rightarrow$ `In Progress` $\rightarrow$ `Resolved` $\rightarrow$ `Closed`) with instant UI feedback.
-* **Staff Guidance & Resolution Notes**: Post troubleshooting steps and official resolutions directly into the ticket discussion thread.
+* **Support Staff Dashboard**: Global triage queue showing all workplace tickets submitted across the entire organization.
+* **Multi-Filter & Search**: Filter by Status (`Open`, `In Progress`, `Resolved`, `Closed`), Category, and Priority, or perform text search across titles, descriptions, and employee names.
+* **Status Lifecycle Management**: Fast status transitions (`Open` $\rightarrow$ `In Progress` $\rightarrow$ `Resolved` $\rightarrow$ `Closed`) with instant UI feedback.
+* **Resolution Notes**: Post official staff instructions and troubleshooting guidance directly onto any ticket.
+
+### System & Testing Features
+* **One-Click Persona Switcher**: Top navigation control enabling instant role-switching between test personas (`emp-1`, `emp-2`, `staff-1`) without login friction.
+* **Automated Integration Testing**: 26 integration tests executing against an in-memory SQLite database (`:memory:`).
 
 ---
 
-## Comment Feature Highlights
+## 5. Technology Stack
 
-The integrated ticket discussion system provides:
-1. **Threaded Chronological History**: Comments are ordered chronologically (`ASC`) so participants see the complete discussion progression.
-2. **Role Badges & User Attribution**: Comments clearly indicate author name and role badge (`Employee` vs `Staff`).
-3. **Data Integrity & Isolation**:
-   * Comments belong strictly to their target ticket via `ticket_id` foreign key.
-   * Employees are strictly forbidden from viewing or commenting on tickets created by other employees (`403 Forbidden`).
-   * Support staff can inspect and comment on any ticket across the organization.
-4. **Validation & Error Handling**:
-   * Empty comments or whitespace-only inputs are rejected with `400 Validation failed`.
-   * Comments are bounded between 1 and 500 characters.
-   * Accessing or commenting on a non-existent ticket returns `404 Ticket not found`.
-
----
-
-## Tech Stack & Architecture
-
-* **Frontend**: React 18, Vite, Tailwind CSS, Lucide Icons.
-* **Backend**: Node.js, Express REST API, SQLite (native zero-dependency `node:sqlite`), parameterized SQL queries (`db.prepare()`).
-* **Architecture**: Strict separation of concerns — routes (`server/src/routes/`) delegate to dedicated controllers (`server/src/controllers/`).
-* **Testing**: Automated integration test suite with **Jest** and **Supertest** running against an isolated in-memory SQLite database (`:memory:`).
-* **Persona Switcher**: Seamless switching between Employee and Support Staff personas in both the UI and via the `x-user-id` request header.
+* **Frontend**:
+  * React 18 (Single Page Application)
+  * Vite (Build tool & development server with API proxy)
+  * Tailwind CSS (Responsive styling)
+  * Lucide React (Icons)
+* **Backend**:
+  * Node.js (v20+ / v24)
+  * Express (REST API framework)
+  * CORS & Dotenv
+* **Database**:
+  * SQLite 3 via Node.js native `node:sqlite` (zero-dependency native module)
+  * Parameterized SQL queries with foreign keys and check constraints
+* **Testing**:
+  * Jest & Supertest (Automated REST integration testing)
 
 ---
 
-## Pre-Seeded Personas
+## 6. Project Folder Structure
 
-| User ID | Name | Role | Email | Permissions |
-| :--- | :--- | :--- | :--- | :--- |
-| `emp-1` | Alice Johnson | `EMPLOYEE` | alice.johnson@company.com | Submit tickets, view own tickets, comment on own tickets |
-| `emp-2` | Charlie Brown | `EMPLOYEE` | charlie.brown@company.com | Submit tickets, view own tickets, comment on own tickets |
-| `staff-1` | Bob Smith | `SUPPORT` | bob.smith@support.com | View all tickets, update statuses, comment on any ticket |
-
----
-
-## Quick Start Guide
-
-### 1. Initialize & Seed Database
-From the root directory:
-```bash
-npm run seed
 ```
-*Creates the SQLite database at `server/data/support_tickets.db` and populates sample tickets, users, and comments.*
-
----
-
-### 2. Run the Backend API Server
-```bash
-npm run dev:server
+employee-support-ticket-app/
+├── client/                               # React Single Page Application
+│   ├── public/                           # Static assets
+│   ├── src/
+│   │   ├── components/                   # Reusable UI components
+│   │   │   ├── Navbar.jsx                # Header with navigation & branding
+│   │   │   ├── UserSwitcher.jsx          # Persona switcher dropdown
+│   │   │   ├── StatusBadge.jsx           # Color-coded status badge
+│   │   │   ├── PriorityBadge.jsx         # Color-coded priority tag
+│   │   │   └── CommentSection.jsx        # Threaded discussion component
+│   │   ├── context/
+│   │   │   └── UserContext.jsx           # Global user & role state management
+│   │   ├── pages/                        # Dedicated page views
+│   │   │   ├── EmployeeDashboard.jsx     # Employee tickets & KPI dashboard
+│   │   │   ├── CreateTicketPage.jsx      # Ticket creation form
+│   │   │   ├── TicketDetailsPage.jsx     # Problem details & discussion
+│   │   │   └── SupportStaffDashboard.jsx # Support queue & triage management
+│   │   ├── services/
+│   │   │   └── api.js                    # Centralized REST API client
+│   │   ├── App.jsx                       # Page routing & state synchronization
+│   │   ├── main.jsx                      # React DOM root entry
+│   │   └── index.css                     # Tailwind CSS directives
+│   ├── index.html                        # Application HTML entry point
+│   ├── vite.config.js                    # Vite configuration & /api proxy
+│   ├── tailwind.config.js                # Tailwind theme configuration
+│   ├── postcss.config.js                 # PostCSS configuration
+│   └── package.json                      # Frontend dependencies
+│
+├── server/                               # Node.js Express REST Backend
+│   ├── data/                             # SQLite persistent storage directory
+│   │   └── support_tickets.db            # SQLite database file (gitignored)
+│   ├── src/
+│   │   ├── controllers/                  # Business logic & SQL queries
+│   │   │   ├── ticketsController.js      # Ticket CRUD & status logic
+│   │   │   ├── commentsController.js     # Comment thread logic
+│   │   │   └── usersController.js        # Persona listing & profile
+│   │   ├── middleware/                   # Express middlewares
+│   │   │   ├── auth.js                   # Header-based auth & role guards
+│   │   │   └── errorHandler.js           # Standardized JSON error response
+│   │   ├── routes/                       # REST endpoint declarations
+│   │   │   ├── tickets.js                # /api/tickets routes
+│   │   │   ├── comments.js               # /api/tickets/:id/comments routes
+│   │   │   └── users.js                  # /api/users routes
+│   │   ├── app.js                        # Express app factory
+│   │   ├── db.js                         # SQLite initialization & schema
+│   │   ├── index.js                      # Server listener (port 5000)
+│   │   └── seed.js                       # Database seeder script
+│   ├── tests/                            # Automated integration test suite
+│   │   ├── tickets.test.js               # Ticket API integration tests
+│   │   └── comments.test.js              # Comment API integration tests
+│   ├── .env.example                      # Environment variables template
+│   └── package.json                      # Backend dependencies & test scripts
+│
+├── docs/                                 # Project documentation
+│   ├── SPEC.md                           # Product specification baseline
+│   └── PLAN.md                           # Phased implementation plan
+│
+├── .gitignore                            # Excluded files (node_modules, db files, logs)
+├── AGENTS.md                             # Agent development & testing rules
+├── package.json                          # Top-level workspace script orchestration
+└── README.md                             # Complete project documentation
 ```
-*Backend runs on `http://localhost:5000`.*
-*Health check endpoint: `http://localhost:5000/api/health`.*
 
 ---
 
-### 3. Run the Frontend Development Server
-In a separate terminal:
-```bash
+## 7. Installation Instructions
+
+### Prerequisites
+* **Node.js**: Version 20.0.0 or higher (Node 24 recommended).
+* **npm**: Version 10.0.0 or higher.
+* **Operating System**: Windows 10/11 (PowerShell or Command Prompt).
+
+### Clone and Install Dependencies
+From PowerShell in the project directory:
+
+```powershell
+# 1. Install backend dependencies
+cd server
+npm install
+cd ..
+
+# 2. Install frontend dependencies
+cd client
+npm install
+cd ..
+```
+
+---
+
+## 8. Frontend Setup
+
+The frontend runs on port `3000` via Vite and proxies all `/api` requests to `http://localhost:5000`.
+
+To start the frontend development server:
+```powershell
+# From the project root:
 npm run dev:client
 ```
-*Frontend runs on `http://localhost:3000` (automatically proxies `/api` requests to port 5000).*
+*Or directly from `/client`:*
+```powershell
+cd client
+npm run dev
+```
+
+The application will be accessible at: **`http://localhost:3000`**
 
 ---
 
-### 4. Run Automated Backend Integration Tests
-```bash
+## 9. Backend Setup
+
+The Express server runs on port `5000`.
+
+To start the backend in development watch mode:
+```powershell
+# From the project root:
+npm run dev:server
+```
+*Or directly from `/server`:*
+```powershell
+cd server
+npm run dev
+```
+
+* Health Check Endpoint: `http://localhost:5000/api/health`
+
+---
+
+## 10. Database Setup
+
+The database uses SQLite with zero native-compilation requirements.
+
+### Database Initialization & Seeding
+To initialize the SQLite database file (`server/data/support_tickets.db`) with pre-seeded personas, sample tickets, and comments:
+
+```powershell
+# From the project root:
+npm run seed
+```
+*Or directly from `/server`:*
+```powershell
+cd server
+npm run seed
+```
+
+### Pre-Seeded Accounts
+
+| User ID | Full Name | Role | Email | Capabilities |
+| :--- | :--- | :--- | :--- | :--- |
+| `emp-1` | Alice Johnson | `EMPLOYEE` | alice.johnson@company.com | Submit tickets, view own tickets, add comments on own tickets |
+| `emp-2` | Charlie Brown | `EMPLOYEE` | charlie.brown@company.com | Submit tickets, view own tickets, add comments on own tickets |
+| `staff-1` | Bob Smith | `SUPPORT` | bob.smith@support.com | View all tickets, filter queue, update status, comment on any ticket |
+
+---
+
+## 11. API Endpoints
+
+All authenticated endpoints require the `x-user-id` header (e.g., `x-user-id: emp-1`).
+
+### Users Endpoints
+| Method | Route | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/health` | Public | Service health status check |
+| `GET` | `/api/users` | Public | List all available personas for switching |
+| `GET` | `/api/users/me` | Authenticated | Return profile of currently authenticated user |
+
+### Tickets Endpoints
+| Method | Route | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/tickets` | Authenticated | List tickets (filtered by creator for `EMPLOYEE`; all tickets for `SUPPORT`). Query params: `?status=Open&priority=High&category=Hardware&employeeId=emp-1` |
+| `POST` | `/api/tickets` | Authenticated | Create a new ticket (`title`, `description`, `category`, `priority`) |
+| `GET` | `/api/tickets/:id` | Authenticated | Retrieve ticket details by ID (returns `403` if employee attempts to view another's ticket) |
+| `PATCH`| `/api/tickets/:id/status` | `SUPPORT` only | Update ticket status (`status`: `'Open'\|'In Progress'\|'Resolved'\|'Closed'`) |
+
+### Comments Endpoints
+| Method | Route | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/tickets/:ticketId/comments` | Authenticated | Retrieve chronological comments for a ticket |
+| `POST` | `/api/tickets/:ticketId/comments` | Authenticated | Add a comment to a ticket (`message`: 1–500 chars) |
+
+---
+
+## 12. Testing Instructions
+
+Automated backend integration tests run using **Jest** and **Supertest** against an isolated in-memory SQLite database (`:memory:`).
+
+To execute the test suite:
+```powershell
+# From the project root:
 npm test
 ```
-*Executes all **23 automated test cases** across ticket authorization, validation rules, status transitions, and comment threads.*
+*Or directly from `/server`:*
+```powershell
+cd server
+npm test
+```
+
+### Test Coverage Highlights
+* **Authentication**: Missing or invalid `x-user-id` returns `401 Unauthorized`.
+* **Authorization**: Employees cannot view (`403`) or comment on (`403`) another employee's ticket; employees cannot update ticket status (`403`).
+* **Input Validation**: Empty title (`400`), whitespace-only title (`400`), short title (`400`), empty comment (`400`), invalid categories/priorities/statuses (`400`).
+* **Data Isolation**: Ensures comments created on Ticket A do not leak into Ticket B.
 
 ---
 
-## REST API Reference
+## 13. Known Limitations
 
-All protected endpoints require the `x-user-id` header (e.g., `x-user-id: emp-1` or `x-user-id: staff-1`).
-
-### Users
-* `GET /api/users` - List all users (for persona switching and attribution).
-* `GET /api/users/me` - Get currently authenticated user details.
-
-### Tickets
-* `GET /api/tickets` - List tickets (filtered to creator if Employee, all tickets if Support Staff).
-  * Query params: `?status=Open&priority=High&category=Hardware&employeeId=emp-1`
-* `POST /api/tickets` - Submit new ticket (Requires: `title`, `description`, `category`, `priority`).
-* `GET /api/tickets/:id` - View single ticket details (403 if Employee views another user's ticket).
-* `PATCH /api/tickets/:id/status` - Update ticket status (Restricted to `SUPPORT` role).
-
-### Comments
-* `GET /api/tickets/:ticketId/comments` - List comments for a ticket in chronological order.
-  * Response: `{ comments: [{ id, ticket_id, user_id, message, created_at, author_name, author_role }] }`
-  * Returns `404` if ticket does not exist; `403` if unauthorized employee.
-* `POST /api/tickets/:ticketId/comments` - Post comment on a ticket.
-  * Request Body: `{ "message": "Follow-up note..." }`
-  * Response: `201 Created` with comment object.
-  * Returns `400` if message is empty; `404` if ticket does not exist; `403` if unauthorized employee.
+1. **Header-Based Authentication**: The application identifies users via the `x-user-id` HTTP header for frictionless testing and role evaluation without password overhead. It does not use signed JWT tokens or session cookies, meaning headers can be forged if exposed directly to untrusted networks.
+2. **Local Storage Single Session**: Active persona is persisted in browser `localStorage`. Opening multiple tabs shares the same active persona across all tabs.
+3. **No File Attachments**: The current specification supports text-based descriptions and comments only; binary attachments (images, PDF logs) are not supported.
+4. **No Real-Time Push**: Updates require a manual view refresh or navigation transition rather than WebSockets or Server-Sent Events (SSE).
 
 ---
 
-## Validation & Business Rules
+## 14. Future Improvements
 
-* **Title**: String between 5 and 100 characters.
-* **Description**: String between 10 and 1,000 characters.
-* **Comment**: String between 1 and 500 characters (non-empty, non-whitespace).
-* **Allowed Categories**: `Hardware`, `Software`, `Network`, `Facilities`, `Access & Accounts`, `Other`.
-* **Allowed Priorities**: `Low`, `Medium`, `High`, `Urgent`.
-* **Allowed Statuses**: `Open`, `In Progress`, `Resolved`, `Closed`.
-* **Role Enforcement**:
-  * Only `SUPPORT` can update ticket status.
-  * `EMPLOYEE` can only view and comment on tickets they created.
-  * `SUPPORT` can view and comment on any ticket.
+1. **Production Authentication**: Implement JWT or OAuth2/OpenID Connect with bcrypt password hashing and refresh tokens.
+2. **File & Screenshot Attachments**: Support diagnostic image uploads and log attachments using local disk or S3-compatible cloud storage.
+3. **Real-Time Updates**: Integrate WebSockets (e.g. Socket.io) to instantly notify employees when ticket status changes or when staff comments.
+4. **Audit Log & SLA Tracking**: Track chronological status change history with timestamps and assign resolution deadline timers based on priority levels.
+5. **Email / Slack Notifications**: Automated webhook dispatch when tickets are submitted, assigned, or resolved.
